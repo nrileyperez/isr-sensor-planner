@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 
+from app.models.scenario import Scenario
 from app.ui.control_panel import ControlPanel
 from app.ui.layer_panel import LayerPanel
 from app.ui.status_panel import StatusPanel
@@ -23,6 +24,54 @@ class MainWindow(QMainWindow):
 
         self._create_toolbar()
         self._create_central_layout()
+
+        self.scenario = Scenario()
+
+        self.control_panel.set_from_scenario(self.scenario)
+        self.terrain_view.set_scenario(self.scenario)
+        self._connect_control_signals()
+
+        # Force one initial UI -> scenario sync so later updates use a known-good state.
+        self.on_sensor_controls_changed()
+    
+    def _connect_control_signals(self):
+        self.control_panel.x_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.y_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.height_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.azimuth_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.tilt_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.fov_spin.valueChanged.connect(self.on_sensor_controls_changed)
+        self.control_panel.range_spin.valueChanged.connect(self.on_sensor_controls_changed)
+
+    def on_sensor_controls_changed(self, *_args):
+        values = self.control_panel.get_sensor_values()
+
+        # Update scenario state from the UI controls.
+        self.scenario.sensor_x = values["sensor_x"]
+        self.scenario.sensor_y = values["sensor_y"]
+        self.scenario.sensor_height = values["sensor_height"]
+        self.scenario.azimuth = values["azimuth"]
+        self.scenario.tilt = values["tilt"]
+        self.scenario.field_of_view = values["field_of_view"]
+        self.scenario.max_range = values["max_range"]
+
+        print(
+            "sensor controls changed -> "
+            f"x={self.scenario.sensor_x:.1f}, "
+            f"y={self.scenario.sensor_y:.1f}, "
+            f"height={self.scenario.sensor_height:.1f}"
+        )
+
+        # Redraw the marker if the terrain view has the update hook.
+        if hasattr(self.terrain_view, "update_sensor_marker"):
+            self.terrain_view.update_sensor_marker()
+
+        self.status_panel.coords_label.setText(
+            f"Coords: ({self.scenario.sensor_x:.1f}, {self.scenario.sensor_y:.1f})"
+        )
+        self.status_panel.distance_label.setText(
+            f"Max Visible Distance: {self.scenario.max_range:.1f} m"
+        )
 
     def _create_toolbar(self):
         toolbar = QToolBar("Main Toolbar")

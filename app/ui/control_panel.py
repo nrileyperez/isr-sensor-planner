@@ -1,3 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.scenario import Scenario
+
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -7,7 +13,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QGroupBox,
 )
-
 
 class ControlPanel(QWidget):
     def __init__(self):
@@ -73,3 +78,24 @@ class ControlPanel(QWidget):
         main_layout.addWidget(self.sim_button)
         main_layout.addWidget(metrics_group)
         main_layout.addStretch()
+
+    def set_from_scenario(self, scenario: "Scenario") -> None:
+        self.x_spin.setValue(scenario.sensor_x)
+        self.y_spin.setValue(scenario.sensor_y)
+        self.height_spin.setValue(scenario.sensor_height)
+        self.azimuth_spin.setValue(scenario.azimuth)
+        self.tilt_spin.setValue(scenario.tilt)
+        self.fov_spin.setValue(scenario.field_of_view)
+        self.range_spin.setValue(scenario.max_range)
+
+    def get_sensor_values(self) -> dict[str, float]:
+        """Return the current sensor-related values from the UI widgets."""
+        return {
+            "sensor_x": self.x_spin.value(),
+            "sensor_y": self.y_spin.value(),
+            "sensor_height": self.height_spin.value(),
+            "azimuth": self.azimuth_spin.value(),
+            "tilt": self.tilt_spin.value(),
+            "field_of_view": self.fov_spin.value(),
+            "max_range": self.range_spin.value(),
+        }
