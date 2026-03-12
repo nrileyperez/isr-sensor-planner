@@ -15,7 +15,7 @@ def downsample_array(array: np.ndarray, step: int) -> np.ndarray:
     return array[::step, ::step]
 
 
-def build_structured_grid(dem: DEMData, downsample_step: int = 2, z_scale: float = 50.0) -> pv.StructuredGrid:
+def build_structured_grid(dem: DEMData, downsample_step: int = 2, z_scale: float = 15.0) -> pv.StructuredGrid:
     """
     Convert DEM elevation data into a PyVista StructuredGrid.
     """

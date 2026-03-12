@@ -7,8 +7,8 @@ from app.terrain.mesh_builder import build_structured_grid
 
 
 DOWNSAMPLE_STEP = 2
-Z_SCALE = 50.0
-# NOTE:
+Z_SCALE = 15.0
+# note:
 # Full-resolution rendering (downsample_step=1) causes instability/segfaults
 # on the current local Mac + PyVista/VTK setup for this DEM size (san_dieg_dem.tif)
 # Use step=2 as the safe default for development.
@@ -25,12 +25,11 @@ def main():
         scalars="elevation",
         cmap="terrain",
         show_edges=False,
-        lighting=False,
+        lighting=True,
     )
     plotter.add_axes()
     plotter.show_grid()
     plotter.show()
-
-
+    
 if __name__ == "__main__":
     main()
