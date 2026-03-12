@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+
+# Build artifacts
+dist/
+build/
+
+# Data files (optional if large)
+data/raw/
+
+# Logs
+*.log
