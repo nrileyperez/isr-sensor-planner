@@ -1,22 +1,16 @@
+import os
+os.environ["QT_API"] = "pyside6"
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow
 
+from PySide6.QtWidgets import QApplication
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("ISR Sensor Coverage Planner")
-        self.resize(1200, 800)
+from app.ui.main_window import MainWindow
 
 
 def main():
-    print("Starting app...")
     app = QApplication(sys.argv)
-    print("QApplication created")
     window = MainWindow()
-    print("MainWindow created")
     window.show()
-    print("Window shown")
     sys.exit(app.exec())
 
 
