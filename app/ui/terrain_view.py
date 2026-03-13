@@ -10,6 +10,11 @@ import numpy as np
 from app.terrain.dem_loader import load_dem
 from app.terrain.mesh_builder import build_structured_grid
 
+from app.analysis.geometry import (
+    azimuth_tilt_to_direction,
+    cone_radius_from_fov_and_range,
+    cone_center_from_origin_and_direction,
+)
 
 class TerrainView(QFrame):
     def __init__(self):
@@ -21,6 +26,7 @@ class TerrainView(QFrame):
         self.dem = None
         self.grid = None
         self.sensor_actor = None
+        self.sensor_cone_actor = None
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -126,19 +132,36 @@ class TerrainView(QFrame):
 
         return float(value)
     
-    #place actual sennor marker
+    def _get_sensor_origin(self):
+        if self.scenario is None or self.dem is None:
+            return None
+
+        x = self.scenario.sensor_x
+        y = self.scenario.sensor_y
+        terrain_z = self._sample_terrain_height(x, y)
+        z = terrain_z + self.scenario.sensor_height
+
+        return (x, y, z)
+    
+    #place actual sensor marker
     def update_sensor_marker(self):
         if self.scenario is None or self.dem is None:
             return
 
-        x = self.scenario.sensor_x
-        y = self.scenario.sensor_y
+        origin = self._get_sensor_origin()
+        if origin is None:
+            return
 
-        terrain_z = self._sample_terrain_height(x, y)
-        z = terrain_z + self.scenario.sensor_height
+        x, y, z = origin
+
+        #x = self.scenario.sensor_x
+        #y = self.scenario.sensor_y
+
+        #terrain_z = self._sample_terrain_height(x, y)
+        #z = terrain_z + self.scenario.sensor_height
 
         sensor_geom = pv.Sphere(
-            radius=100,
+            radius=500,
             center=(x, y, z),
             theta_resolution=24,
             phi_resolution=24,
@@ -150,6 +173,48 @@ class TerrainView(QFrame):
         self.sensor_actor = self.plotter.add_mesh(
             sensor_geom,
             color="red",
+            smooth_shading=True,
+        )
+        
+        self.plotter.render()
+        self.update_sensor_cone()
+
+    def update_sensor_cone(self):
+        if self.scenario is None or self.dem is None:
+            return
+
+        origin = self._get_sensor_origin()
+        if origin is None:
+            return
+
+        direction = azimuth_tilt_to_direction(
+            self.scenario.azimuth,
+            self.scenario.tilt,
+        )
+
+        length = self.scenario.max_range
+        radius = cone_radius_from_fov_and_range(
+            self.scenario.field_of_view,
+            self.scenario.max_range,
+        )
+
+        center = cone_center_from_origin_and_direction(origin, direction, length)
+
+        cone_geom = pv.Cone(
+            center=center,
+            direction=direction,
+            height=length,
+            radius=radius,
+            resolution=48,
+        )
+
+        if self.sensor_cone_actor is not None:
+            self.plotter.remove_actor(self.sensor_cone_actor)
+
+        self.sensor_cone_actor = self.plotter.add_mesh(
+            cone_geom,
+            color="yellow",
+            opacity=0.25,
             smooth_shading=True,
         )
 
